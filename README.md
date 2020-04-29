@@ -12,6 +12,16 @@ Building
 make
 ```
 
+Running
+---
+
+``` sh
+sudo ./system-tuning.sh
+sudo ./project1 < INPUT_FILE
+```
+
+Alternatively, one might wish to use the fish scripts described below.
+
 File Structure
 ---
 
