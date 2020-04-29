@@ -87,7 +87,7 @@ diff -Naur orig/kernel/osproj.c linux-5.6.4/kernel/osproj.c
 +	copy_from_user(&beg, begin, sizeof(beg));
 +	strncpy_from_user(buf, name, 64);
 +	ktime_get_ts64(&end);
-+	printk("[Project1] %s %lld.%ld %lld.%ld\n", buf, beg.tv_sec, beg.tv_nsec, end.tv_sec, end.tv_nsec);
++	printk("[Project1] %s %lld.%09ld %lld.%09ld\n", buf, beg.tv_sec, beg.tv_nsec, end.tv_sec, end.tv_nsec);
 +	return 0;
 +}
 diff -Naur orig/kernel/sys_ni.c linux-5.6.4/kernel/sys_ni.c

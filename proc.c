@@ -10,7 +10,7 @@ noreturn void RunChildProc(int id) {
 	fprintf(stderr, "Start: %s (%d) %" PRId64 "\n", (*name)[id], getpid(),
 	        (GetTimeNs() - init_time) / ns_per_unit);
 	printf("%s %d\n", (*name)[id], getpid());
-	fflush(stdout);
+	//fflush(stdout);
 	struct timespec64 begin;
 	syscall(439, &begin);
 	for (int j = 0; j < execution_time[id]; j++) {
@@ -18,7 +18,9 @@ noreturn void RunChildProc(int id) {
 	}
 	fprintf(stderr, "Stop: %s (%d) %" PRId64 "\n", (*name)[id], getpid(),
 	        (GetTimeNs() - init_time) / ns_per_unit);
-	syscall(440, (*name)[id], &begin);
+	char buf[64];
+	sprintf(buf, "%d", getpid());
+	syscall(440, buf, &begin);
 	exit(0);
 }
 

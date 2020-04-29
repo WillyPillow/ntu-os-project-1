@@ -3,6 +3,8 @@ NTU Operating Systems Project 1
 
 [Assignment Specification](https://hackmd.io/@Ue96nvjESj2XsDXw532-qA/ryYqceUrU)
 
+NOTE: The output format in the demo video does not conform perfectly to the specifications, and has been manually fixed. The correction, however, is not reflected in the video.
+
 Building
 ---
 

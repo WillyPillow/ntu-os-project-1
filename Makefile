@@ -28,7 +28,7 @@ ifeq ($(DEBUG), 1)
 	LDFLAGS = -fPIE -pie -Wl,-z,relro,-z,now
 	LEXFLAGS += --debug
 else
-	CCOMMONFLAGS += -O3 -flto -s -W -Wall -Wextra -fprofile-use
+	CCOMMONFLAGS += -O3 -flto -s -W -Wall -Wextra #-fprofile-use
 	CC = gcc
 	CFLAGS += -std=gnu18
 	CXX = g++

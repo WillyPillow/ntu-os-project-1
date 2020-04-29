@@ -16,6 +16,6 @@ SYSCALL_DEFINE2(osproj_printk, char __user*, name, struct timespec64 __user*, be
 	copy_from_user(&beg, begin, sizeof(beg));
 	strncpy_from_user(buf, name, 64);
 	ktime_get_ts64(&end);
-	printk("[Project1] %s %lld.%ld %lld.%ld\n", buf, beg.tv_sec, beg.tv_nsec, end.tv_sec, end.tv_nsec);
+	printk("[Project1] %s %lld.%09ld %lld.%09ld\n", buf, beg.tv_sec, beg.tv_nsec, end.tv_sec, end.tv_nsec);
 	return 0;
 }
