@@ -7,8 +7,11 @@ title: "Operating Systems Project 1"
 - Kernel Version: Linux 5.6.4-rt3 (`PREEMPT_RT` patched, `CONFIG_NO_HZ_FULL` enabled)
 	- Built from <https://aur.archlinux.org/packages/linux-rt/> commit `8886d513d3ef12894defd076f40179a01db5d5a6`
 - Cmdline: `quiet loglevel=3 rd.systemd.show_status=false rd.udev.log-priority=3 scsi_mod.use_blk_mq=y dm_mod.use_blk_mq=y nowatchdog mitigations=off isolcpus=nohz,domain,managed_irq,1-2 irqaffinity=0,3-5 maxcpus=6 tsc=nowatchdog`
+	- `watchdog` disabled
+	- Meltdown/Spectre-esque mitigations disabled
+	- CPU 1 and 2 isolated and excluded from the IRQ affinity mask
+	- Hyperthreading disabled
 - CPU: Intel i7-8750H
-- Hyperthreading disabled
 - `system-tuning.sh`
 	- Turbo boost disabled
 	- CPU idle states disabled
@@ -42,7 +45,7 @@ In the round-robin policy, we maintain a doubly-linked-list containing possibly 
 
 ### SJF ###
 
-In the case of SJF, we maintain a min-heap[^tie], namely a leftist tree, that contains the processes that are waiting to be executed. We then simply choose the minimum element from the heap to run, while making sure that other ready processes are added to the heap when a process is running.
+In the case of SJF, we maintain a min-heap[^tie], namely a leftist tree (, which supports `DELETE_MIN` operations in $\mathcal{O}(\log{N})$ time and `FIND_MIN` queries in $\mathcal{O}(1)$ time), that contains the processes that are waiting to be executed. We then simply choose the minimum element from the heap to run, while making sure that other ready processes are added to the heap when a process is running.
 
 [^tie]: Tie broken by the order of the processes in the input file.
 
@@ -63,44 +66,44 @@ In addition, because of the deprecation of functions like `getnstimeofday` in ne
 
 \tablecaption{FIFO\_1 Comparison (E: Experiment; T: Theory)}
 
-|    | Start (E) | End (E) | Start (T) | End (T) |
-|----|----------:|--------:|----------:|--------:|
-| P1 |         0 |     501 |         0 |     500 |
-| P2 |       501 |    1002 |       500 |    1000 |
-| P3 |      1002 |    1503 |      1000 |    1500 |
-| P4 |      1503 |    2004 |      1500 |    2000 |
-| P5 |      2004 |    2506 |      2000 |    2500 |
+|    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
+|----|----------:|--------:|----------:|--------:|----------------------:|
+| P1 |         0 |     501 |         0 |     500 |                 0.998 |
+| P2 |       501 |    1002 |       500 |    1000 |                 0.998 |
+| P3 |      1002 |    1503 |      1000 |    1500 |                 0.998 |
+| P4 |      1503 |    2004 |      1500 |    2000 |                 0.998 |
+| P5 |      2004 |    2506 |      2000 |    2500 |                 0.996 |
 
 \tablecaption{PSJF\_2 Comparison (E: Experiment; T: Theory)}
 
-|    | Start (E) | End (E) | Start (T) | End (T) |
-|----|----------:|--------:|----------:|--------:|
-| P1 |         0 |    4003 |         0 |    4000 |
-| P2 |      1000 |    2000 |      1000 |    2000 |
-| P3 |      4003 |   10999 |      4000 |   11000 |
-| P4 |      5000 |    6997 |      5000 |    7000 |
-| P5 |      7000 |    7996 |      7000 |    8000 |
+|    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
+|----|----------:|--------:|----------:|--------:|----------------------:|
+| P1 |         0 |    4003 |         0 |    4000 |                 0.999 |
+| P2 |      1000 |    2000 |      1000 |    2000 |                 1.000 |
+| P3 |      4003 |   10999 |      4000 |   11000 |                 1.001 |
+| P4 |      5000 |    6997 |      5000 |    7000 |                 1.002 |
+| P5 |      7000 |    7996 |      7000 |    8000 |                 1.004 |
 
 \tablecaption{RR\_3 Comparison (E: Experiment; T: Theory)}
 
-|    | Start (E) | End (E) | Start (T) | End (T) |
-|----|----------:|--------:|----------:|--------:|
-| P1 |      1200 |   20210 |      1200 |   20200 |
-| P2 |      2700 |   20724 |      2700 |   20700 |
-| P3 |      4200 |   18199 |      4200 |   18200 |
-| P4 |      6200 |   31199 |      6200 |   31200 |
-| P5 |      6700 |   30207 |      6700 |   30200 |
-| P6 |      7200 |   28214 |      7200 |   28200 |
+|    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
+|----|----------:|--------:|----------:|--------:|----------------------:|
+| P1 |      1200 |   20210 |      1200 |   20200 |                 0.999 |
+| P2 |      2700 |   20724 |      2700 |   20700 |                 0.999 |
+| P3 |      4200 |   18199 |      4200 |   18200 |                 1.000 |
+| P4 |      6200 |   31199 |      6200 |   31200 |                 1.000 |
+| P5 |      6700 |   30207 |      6700 |   30200 |                 1.000 |
+| P6 |      7200 |   28214 |      7200 |   28200 |                 0.999 |
 
 \tablecaption{SJF\_4 Comparison (E: Experiment; T: Theory)}
 
-|    | Start (E) | End (E) | Start (T) | End (T) |
-|----|----------:|--------:|----------:|--------:|
-| P1 |         0 |    3002 |         0 |    3000 |
-| P2 |      3002 |    4005 |      3000 |    4000 |
-| P3 |      4005 |    8016 |      4000 |    8000 |
-| P4 |      9016 |   11023 |      9000 |   11000 |
-| P5 |      8016 |    9016 |      8000 |    9000 |
+|    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
+|----|----------:|--------:|----------:|--------:|----------------------:|
+| P1 |         0 |    3002 |         0 |    3000 |                 0.999 |
+| P2 |      3002 |    4005 |      3000 |    4000 |                 0.997 |
+| P3 |      4005 |    8016 |      4000 |    8000 |                 0.997 |
+| P4 |      9016 |   11023 |      9000 |   11000 |                 0.997 |
+| P5 |      8016 |    9016 |      8000 |    9000 |                 1.000 |
 
 (Note that the unit times here are converted to using the initial measurement mentioned in \ref{design}.)
 
