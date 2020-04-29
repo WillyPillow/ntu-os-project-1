@@ -48,13 +48,13 @@ In the case of SJF, we maintain a min-heap[^tie], namely a leftist tree, that co
 
 ### PSJF ###
 
-The design of PSJF is similar to SJF, except that we need to maintain how much work a process has done to derive its remaining time and preempt processes based on that. Namely, each time an element is inserted to the heap, we check if it is able to preempt the current process, and if so, insert the latter into the heap so that we can start the former.
+The design of PSJF is similar to SJF, except that we need to maintain how much work a process has done to derive its remaining time and preempt processes based on that. Namely, each time an element is inserted to the heap, we check if it is able to preempt the current process, and if so, insert the latter back into the heap so that we can start the former.
 
 ## Kernel ##
 
-Two system calls are implemented: `osproj_gettime` and `osproj_printk`. The former allows for querying the current time (`CLOCK_MONOTONIC`), while the latter accepts a name string and begin time; and `printk`s the name, begin time, and current time according to the assignment specifications.
+Two system calls are implemented: `osproj_gettime` and `osproj_printk`. The former allows for querying the current time (`CLOCK_MONOTONIC`), while the latter accepts a name string (PID in this case) and begin time; and `printk`s the name, begin time, and current time (as the syscall is invoked when before ending child processes, this is the same as the end time) according to the assignment specifications.
 
-Notably, although we have `osproj_gettime` and use it in the child processes, `clock_gettime` is still widely used in the scheduler. This is because `clock_gettime` is in the VDSO and should have lower calling overhead.
+Notably, although we have `osproj_gettime` and do use it in the child processes, `clock_gettime` is still widely used in the scheduler. This is because `clock_gettime` is in the VDSO and should have lower calling overhead.
 
 In addition, because of the deprecation of functions like `getnstimeofday` in newer versions of Linux (due to the 2038 problem), `ktime_get_ts64` is used instead.
 
@@ -108,10 +108,10 @@ In addition, because of the deprecation of functions like `getnstimeofday` in ne
 
 In the examples presented, the orders in which the processes are executed are correct. However, as can be seen from the FIFO case, there is still a bit of jitter in terms of the running times for the child processes. It is extremely likely that the deviations in the other cases stems from the same cause. This is despite the fact that we strived to minimize such jitter via the effort shown in \ref{environment}.
 
-Unfortunately, not only does OS-caused interrupts cause such deviations, but in modern x86_64 processors there also appears to be a lot of factors at play, from microscopic factors such as cache and branch prediction to macroscopic factors such as SMI interrupts. [^factor] That being said, it remains to be investigated what is the major cause in our case.
+Unfortunately, not only does OS-caused interrupts cause such deviations, but in modern x86_64 processors there also appears to be a lot of factors at play, from microscopic factors such as cache and branch prediction to macroscopic factors such as SMI interrupts. [^factor] That being said, it remains to be investigated what the major cause is in our case.
 
 In addition, it may be worth exploring whether moving idle tasks to another CPU helps with the jitter, given the current Linux implementation of adaptive-ticks, i.e., `NO_HZ_FULL`, does not kick in when multiple `SCHED_FIFO` processes are running on the same core. [^nohz]
 
-[^factor]: Examples are only for illustrative purposes and are not necessarily the cause for our jitter.
+[^factor]: Examples are only for illustrative purposes and not necessarily the cause for our jitter.
 
 [^nohz]: C.f. `Documentation/timers/NO_HZ.txt` in the Linux kernel.
