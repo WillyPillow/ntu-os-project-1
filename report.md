@@ -104,7 +104,7 @@ Notably, although we have `osproj_gettime` and use it in the child processes, `c
 
 (Note that the unit times here are converted to using the initial measurement mentioned in \ref{design}.)
 
-(The data shown here can be found in `demo-out-old`. Note that this is not the same as the data in the demo video, i.e., those in `demo-out`. This is due to some video encoding issues when recording the first attempt.)
+(The data shown here can be found in `demo/demo-out-old`. Note that this is not the same as the data in the demo video, i.e., those in `demo/demo-out`. This is due to some video encoding issues when recording the first attempt.)
 
 In the examples presented, the orders in which the processes are executed are correct. However, as can be seen from the FIFO case, there is still a bit of jitter in terms of the running times for the child processes. It is extremely likely that the deviations in the other cases stems from the same cause. This is despite that fact that we strived to minimize such jitter via the effort shown in \ref{environment}.
 
