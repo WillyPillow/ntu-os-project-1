@@ -41,7 +41,7 @@ For the FIFO policy, we simply wait for a process to be ready, run and wait for 
 
 ### RR ###
 
-In the round-robin policy, we maintain a doubly-linked-list containing possibly active processes. In the event loop, we check if there are dead processes in the event queue that can be removed (polled via `waitpid`) and if there are processes that are ready and can be inserted. Notably, we always insert to the end of the list. Then, if the current process is dead or needs to be preempted, we search for the next process in the list and switch to it.
+In the round-robin policy, we maintain a doubly-linked-list containing possibly active processes. In the event loop, we check if there are dead processes in the list that can be removed (polled via `waitpid`) and if there are processes that are ready and can be launched and inserted to the list[^tie], namely, at the position before the current task. Then, if the current process is dead or needs to be preempted, we search for the next process in the list and switch to it.
 
 ### SJF ###
 
@@ -68,46 +68,44 @@ In addition, because of the deprecation of functions like `getnstimeofday` in ne
 
 |    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
 |----|----------:|--------:|----------:|--------:|----------------------:|
-| P1 |         0 |     501 |         0 |     500 |                 0.998 |
-| P2 |       501 |    1002 |       500 |    1000 |                 0.998 |
-| P3 |      1002 |    1503 |      1000 |    1500 |                 0.998 |
-| P4 |      1503 |    2004 |      1500 |    2000 |                 0.998 |
-| P5 |      2004 |    2506 |      2000 |    2500 |                 0.996 |
+| P1 |         0 |     500 |         0 |     500 |                 1.000 |
+| P2 |       500 |    1001 |       500 |    1000 |                 1.002 |
+| P3 |      1001 |    1501 |      1000 |    1500 |                 1.000 |
+| P4 |      1501 |    2001 |      1500 |    2000 |                 1.000 |
+| P5 |      2002 |    2501 |      2000 |    2500 |                 0.998 |
 
 \tablecaption{PSJF\_2 Comparison (E: Experiment; T: Theory)}
 
 |    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
 |----|----------:|--------:|----------:|--------:|----------------------:|
-| P1 |         0 |    4003 |         0 |    4000 |                 0.999 |
+| P1 |         0 |    4002 |         0 |    4000 |                 1.001 |
 | P2 |      1000 |    2000 |      1000 |    2000 |                 1.000 |
-| P3 |      4003 |   10999 |      4000 |   11000 |                 1.001 |
-| P4 |      5000 |    6997 |      5000 |    7000 |                 1.002 |
-| P5 |      7000 |    7996 |      7000 |    8000 |                 1.004 |
+| P3 |      4002 |   10998 |      4000 |   11000 |                 0.999 |
+| P4 |      5000 |    6997 |      5000 |    7000 |                 0.999 |
+| P5 |      7000 |    7999 |      7000 |    8000 |                 0.999 |
 
 \tablecaption{RR\_3 Comparison (E: Experiment; T: Theory)}
 
 |    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
 |----|----------:|--------:|----------:|--------:|----------------------:|
-| P1 |      1200 |   20210 |      1200 |   20200 |                 0.999 |
-| P2 |      2700 |   20724 |      2700 |   20700 |                 0.999 |
-| P3 |      4200 |   18199 |      4200 |   18200 |                 1.000 |
-| P4 |      6200 |   31199 |      6200 |   31200 |                 1.000 |
-| P5 |      6700 |   30207 |      6700 |   30200 |                 1.000 |
-| P6 |      7200 |   28214 |      7200 |   28200 |                 0.999 |
+| P1 |      1200 |   19687 |      1200 |   19700 |                 0.999 |
+| P2 |      2700 |   20175 |      2700 |   20200 |                 0.999 |
+| P3 |      4200 |   18192 |      4200 |   18200 |                 0.999 |
+| P4 |      6200 |   31131 |      6200 |   31200 |                 0.997 |
+| P5 |      6700 |   30149 |      6700 |   30200 |                 0.998 |
+| P6 |      8200 |   28163 |      8200 |   28200 |                 0.998 |
 
 \tablecaption{SJF\_4 Comparison (E: Experiment; T: Theory)}
 
 |    | Start (E) | End (E) | Start (T) | End (T) | $\Delta E / \Delta T$ |
 |----|----------:|--------:|----------:|--------:|----------------------:|
-| P1 |         0 |    3002 |         0 |    3000 |                 0.999 |
-| P2 |      3002 |    4005 |      3000 |    4000 |                 0.997 |
-| P3 |      4005 |    8016 |      4000 |    8000 |                 0.997 |
-| P4 |      9016 |   11023 |      9000 |   11000 |                 0.997 |
-| P5 |      8016 |    9016 |      8000 |    9000 |                 1.000 |
+| P1 |         0 |    2995 |         0 |    3000 |                 0.998 |
+| P2 |      2995 |    3994 |      3000 |    4000 |                 0.999 |
+| P3 |      3994 |    7990 |      4000 |    8000 |                 0.999 |
+| P4 |      8988 |   10984 |      9000 |   11000 |                 0.998 |
+| P5 |      7990 |    8988 |      8000 |    9000 |                 0.998 |
 
 (Note that the unit times here are converted to using the initial measurement mentioned in \ref{design}.)
-
-(The data shown here can be found in `demo/demo-out-old`. Note that this is not the same as the data in the demo video, i.e., those in `demo/demo-out`. This is due to some video encoding issues when recording the first attempt.)
 
 In the examples presented, the orders in which the processes are executed are correct. However, as can be seen from the FIFO case, there is still a bit of jitter in terms of the running times for the child processes. It is extremely likely that the deviations in the other cases stems from the same cause. This is despite the fact that we strived to minimize such jitter via the effort shown in \ref{environment}.
 

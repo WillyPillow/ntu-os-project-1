@@ -31,11 +31,12 @@ static int ProcCompareEnd(const void *px, const void *py) {
 
 int main() {
 	assert(mlockall(MCL_CURRENT | MCL_FUTURE) == 0);
-	IncPriority(0, kCpuParent);
+	IncPriority(0, kCpuChild);
 	assert(sched_getscheduler(0) == SCHED_FIFO &&
 	       "You may need to run this program as root.");
 
 	CalibTime();
+	IncPriority(0, kCpuParent);
 
 	scanf("%15s", kind);
 	scanf("%d", &n);

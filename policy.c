@@ -51,22 +51,21 @@ void PolicyRr() {
 			WaitUntil(ready_time[id_by_ready[i]]);
 			int t_pid = fork();
 			if (t_pid == 0) {
-				//if (nxt[n] != n) DecPriority(0, kCpuChild);
-				//else IncPriority(0, kCpuChild);
 				RunChildProc(id_by_ready[i]);
 			}
+			int last = cur;
 			if (nxt[n] == n) {
 				IncPriority(t_pid, kCpuChild);
 				last_t = GetTime();
-				cur = i;
+				cur = id_by_ready[i];
 			} else {
-				DecPriority(t_pid, kCpuChild);
+				DecPriority(t_pid, -1);
 			}
 			pid[id_by_ready[i]] = t_pid;
-			prv[id_by_ready[i]] = prv[n];
-			nxt[id_by_ready[i]] = n;
-			nxt[prv[n]] = id_by_ready[i];
-			prv[n] = id_by_ready[i];
+			prv[id_by_ready[i]] = prv[last];
+			nxt[id_by_ready[i]] = last;
+			nxt[prv[last]] = id_by_ready[i];
+			prv[last] = id_by_ready[i];
 			++i;
 		}
 		int t;
@@ -75,15 +74,21 @@ void PolicyRr() {
 			int last = cur;
 			while (nxt[n] != n) {
 				cur = nxt[cur] == n ? nxt[n] : nxt[cur];
+				if (cur == last) {
+					execution_time[last] -= t - last_t;
+					last_t = GetTime();
+					break;
+				}
 				if (!dead[cur] && waitpid(pid[cur], NULL, WNOHANG) != pid[cur]) {
 					if (!dead[last]) {
-						DecPriority(pid[last], -1);
 						if ((t - last_t) + kEps >= execution_time[last]) {
-							assert(waitpid(pid[last], NULL, 0) == pid[last]);
+							while (waitpid(pid[last], NULL, WNOHANG) != pid[last]);
 							dead[last] = true;
+						} else {
+							DecPriority(pid[last], -1);
 						}
 					}
-					IncPriority(pid[cur], -1);
+					IncPriority(pid[cur], kCpuChild);
 					t = GetTime();
 					execution_time[last] -= t - last_t;
 					last_t = t;
